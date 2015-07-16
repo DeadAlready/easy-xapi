@@ -15,7 +15,7 @@ function registerRobots(app: express.Application, root: string): void {
     var robots = fs.existsSync(robotsPath);
     app.use('/robots.txt', function (req, res) {
         if(robots) {
-            res.sendfile(robotsPath);
+            res.sendFile(robotsPath);
             return;
         }
         res.sendStatus(404);

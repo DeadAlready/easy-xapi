@@ -1,6 +1,6 @@
 {
   "name": "easy-xapi",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "express api x-headers service",
   "main": "index.js",
   "scripts": {
