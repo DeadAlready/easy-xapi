@@ -1,0 +1,46 @@
+/**
+ * Created by karl on 16/07/15.
+ */
+/// <reference path='typings/tsd.d.ts' />
+'use strict';
+var http = require('http');
+var express = require('express');
+var compress = require('compression');
+var eJSend = require('easy-jsend');
+var eXHeaders = require('easy-x-headers');
+var Common = require('./lib/common');
+var Log = require('./lib/log');
+var Error = require('./lib/error');
+var e;
+function init(config) {
+    e = config.express || express;
+    eJSend.init(config.jSend);
+}
+exports.init = init;
+function create(config) {
+    var app = express();
+    Common.register(app, config.root);
+    app.use(compress());
+    app.set('trust proxy', true);
+    app.use(eXHeaders.getMiddleware(config.xHeaderDefaults));
+    var log = Log.init(config.log);
+    app.use(log.middleware());
+    config.mount(app);
+    app.all('*', function (req, res, next) {
+        res.fail('Not found', 404);
+    });
+    var server = http.createServer(app);
+    app.use(Error.getErrorHandler(server));
+    return {
+        express: express,
+        app: app,
+        server: server,
+        listen: function () {
+            server.listen(config.port, function () {
+                log.log.info('%s listening on %d', config.name, config.port);
+            });
+        }
+    };
+}
+exports.create = create;
+//# sourceMappingURL=index.js.map
