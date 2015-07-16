@@ -65,6 +65,7 @@ export function create(config: Config) {
     return {
         express: express,
         app: app,
+        log: log,
         server: server,
         listen: function() {
             server.listen(config.port, function () {
