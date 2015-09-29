@@ -22,11 +22,18 @@ import Common = require('./lib/common');
 import Log = require('./lib/log');
 import Error = require('./lib/error');
 
+var clusterService = require('cluster-service');
+
 interface Config {
     root: string;
     xHeaderDefaults: any;
     port: number;
     name: string;
+    cluster?: {
+        workers: string | Object;
+        workerCount: number;
+        accessKey: string;
+    };
     log: {
         name: string;
         level: string
@@ -43,7 +50,7 @@ export function init(config: any) {
 export function create(config: Config) {
     var app = express();
 
-    Common.register(app, config.root);
+    Common.register(app, config.root, config.cluster && config.cluster.accessKey);
 
     app.use(compress());
     app.set('trust proxy', true);
@@ -68,6 +75,13 @@ export function create(config: Config) {
         log: log.log,
         server: server,
         listen: function() {
+
+            if(config.cluster && cluster.isMaster) {
+                config.cluster.workers = process['mainModule'].filename;
+                clusterService.start(config.cluster);
+                return;
+            }
+
             server.listen(config.port, function () {
                 log.log.info('%s listening on %d', config.name, config.port);
             });

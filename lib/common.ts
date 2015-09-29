@@ -6,8 +6,15 @@
 
 import fs = require('fs');
 import path = require('path');
+import CProcess = require('child_process');
 
 import express = require('express');
+
+var clusterServiceBin = path.dirname(require.resolve('cluster-service')) + '/bin/cservice ';
+
+function getCmd(question:string, accessKey:string):string {
+    return clusterServiceBin + question + ' --json --accessKey ' + accessKey;
+}
 
 function registerRobots(app: express.Application, root: string): void {
 
@@ -22,14 +29,28 @@ function registerRobots(app: express.Application, root: string): void {
     });
 }
 
-export function register(app: express.Application, root: string): void {
+export function register(app: express.Application, root: string, accessKey?: string): void {
 
     app.use('/:var(autodiscover/autodiscover.xml|favicon.ico)', function (req, res) {
         res.sendStatus(404);
     });
 
     app.use('/heartbeat', function (req, res) {
-        res.success('ok');
+        if(!accessKey) {
+            res.success('ok');
+            return;
+        }
+
+        var question = req.query.info ? 'workers' : 'info';
+
+        CProcess.exec(getCmd(question, accessKey), function (err, stdout, stderr) {
+            if(err || stderr) {
+                res.error(err || stderr.toString('utf8'));
+                return;
+            }
+            var parsed = JSON.parse(stdout.toString('utf8'));
+            res.success(parsed);
+        });
     });
 
     registerRobots(app, root);

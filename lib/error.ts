@@ -8,6 +8,12 @@ import http = require('http');
 import cluster = require('cluster');
 import express = require('express');
 
+var logMock = {
+    error: function (data, msg) {
+        console.error(JSON.stringify(data), msg);
+    }
+};
+
 export function getErrorHandler(server: http.Server): express.ErrorRequestHandler {
     return function errorHandler(err:any, req, res, next) {
 
@@ -15,6 +21,10 @@ export function getErrorHandler(server: http.Server): express.ErrorRequestHandle
             message: err.message,
             stack: err.stack
         };
+        if(!req.log) {
+            req.log = logMock;
+        }
+
         req.log.error({error: friendly}, 'Something went wrong');
 
         if(cluster.isMaster) {

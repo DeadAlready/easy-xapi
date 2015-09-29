@@ -1,6 +1,6 @@
 {
   "name": "easy-xapi",
-  "version": "1.0.3",
+  "version": "2.0.0",
   "description": "express api x-headers service",
   "main": "index.js",
   "scripts": {
@@ -24,6 +24,7 @@
   "homepage": "https://github.com/DeadAlready/easy-xapi",
   "dependencies": {
     "bunyan": "^1.4.0",
+    "cluster-service": "^1.0.6",
     "compression": "^1.5.1",
     "easy-jsend": "^1.0.0",
     "easy-x-headers": "^1.0.1",

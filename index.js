@@ -4,6 +4,7 @@
 /// <reference path='typings/tsd.d.ts' />
 'use strict';
 var http = require('http');
+var cluster = require('cluster');
 var express = require('express');
 var compress = require('compression');
 var eJSend = require('easy-jsend');
@@ -11,6 +12,7 @@ var eXHeaders = require('easy-x-headers');
 var Common = require('./lib/common');
 var Log = require('./lib/log');
 var Error = require('./lib/error');
+var clusterService = require('cluster-service');
 var e;
 function init(config) {
     e = config.express || express;
@@ -19,7 +21,7 @@ function init(config) {
 exports.init = init;
 function create(config) {
     var app = express();
-    Common.register(app, config.root);
+    Common.register(app, config.root, config.cluster && config.cluster.accessKey);
     app.use(compress());
     app.set('trust proxy', true);
     app.use(eXHeaders.getMiddleware(config.xHeaderDefaults));
@@ -37,6 +39,11 @@ function create(config) {
         log: log.log,
         server: server,
         listen: function () {
+            if (config.cluster && cluster.isMaster) {
+                config.cluster.workers = process['mainModule'].filename;
+                clusterService.start(config.cluster);
+                return;
+            }
             server.listen(config.port, function () {
                 log.log.info('%s listening on %d', config.name, config.port);
             });
