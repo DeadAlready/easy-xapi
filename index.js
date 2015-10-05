@@ -43,6 +43,7 @@ function create(config) {
         listen: function () {
             if (config.cluster && cluster.isMaster) {
                 config.cluster.workers = process['mainModule'].filename;
+                config.cluster.port = config.cluster.port || config.port + 10000;
                 clusterService.start(config.cluster);
                 return;
             }

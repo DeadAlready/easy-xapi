@@ -33,6 +33,7 @@ interface Config {
         workers: string | Object;
         workerCount: number;
         accessKey: string;
+        port?:number;
     };
     log: {
         name: string;
@@ -80,6 +81,7 @@ export function create(config: Config) {
 
             if(config.cluster && cluster.isMaster) {
                 config.cluster.workers = process['mainModule'].filename;
+                config.cluster.port = config.cluster.port || config.port + 10000;
                 clusterService.start(config.cluster);
                 return;
             }
