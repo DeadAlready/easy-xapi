@@ -21,18 +21,20 @@ function init(config) {
 exports.init = init;
 function create(config) {
     var app = express();
-    Common.register(app, config.root, config.cluster && config.cluster.accessKey);
-    app.use(compress());
-    app.set('trust proxy', true);
-    app.use(eXHeaders.getMiddleware(config.xHeaderDefaults));
     var log = Log.init(config.log);
-    app.use(log.middleware());
-    config.mount(app);
-    app.all('*', function (req, res, next) {
-        res.fail('Not found', 404);
-    });
-    var server = http.createServer(app);
-    app.use(Error.getErrorHandler(server));
+    if (!config.cluster || !cluster.isMaster) {
+        Common.register(app, config.root, config.cluster && config.cluster.accessKey);
+        app.use(compress());
+        app.set('trust proxy', true);
+        app.use(eXHeaders.getMiddleware(config.xHeaderDefaults));
+        app.use(log.middleware());
+        config.mount(app);
+        app.all('*', function (req, res, next) {
+            res.fail('Not found', 404);
+        });
+        var server = http.createServer(app);
+        app.use(Error.getErrorHandler(server));
+    }
     return {
         express: express,
         app: app,
