@@ -22,8 +22,11 @@ exports.init = init;
 function create(config) {
     var app = express();
     var log = Log.init(config.log);
+    if (config.cluster) {
+        config.cluster.port = config.cluster.port || config.port + 10000;
+    }
     if (!config.cluster || !cluster.isMaster) {
-        Common.register(app, config.root, config.cluster && config.cluster.accessKey);
+        Common.register(app, config.root, config.cluster);
         app.use(compress());
         app.set('trust proxy', true);
         app.use(eXHeaders.getMiddleware(config.xHeaderDefaults));
@@ -43,7 +46,6 @@ function create(config) {
         listen: function () {
             if (config.cluster && cluster.isMaster) {
                 config.cluster.workers = process['mainModule'].filename;
-                config.cluster.port = config.cluster.port || config.port + 10000;
                 clusterService.start(config.cluster);
                 return;
             }

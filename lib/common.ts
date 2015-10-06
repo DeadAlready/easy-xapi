@@ -12,8 +12,8 @@ import express = require('express');
 
 var clusterServiceBin = path.dirname(require.resolve('cluster-service')) + '/bin/cservice ';
 
-function getCmd(question:string, accessKey:string):string {
-    return clusterServiceBin + question + ' --json --accessKey ' + accessKey;
+function getCmd(question:string, accessKey:string, port: number):string {
+    return clusterServiceBin + question + ' --json --accessKey ' + accessKey + ' --port ' + port;
 }
 
 function registerRobots(app: express.Application, root: string): void {
@@ -29,21 +29,21 @@ function registerRobots(app: express.Application, root: string): void {
     });
 }
 
-export function register(app: express.Application, root: string, accessKey?: string): void {
+export function register(app: express.Application, root: string, cluster?: any): void {
 
     app.use('/:var(autodiscover/autodiscover.xml|favicon.ico)', function (req, res) {
         res.sendStatus(404);
     });
 
     app.use('/heartbeat', function (req, res) {
-        if(!accessKey) {
+        if(!cluster || !cluster.accessKey) {
             res.success('ok');
             return;
         }
 
         var question = req.query.info ? 'workers' : 'info';
 
-        CProcess.exec(getCmd(question, accessKey), function (err, stdout, stderr) {
+        CProcess.exec(getCmd(question, cluster.accessKey, cluster.port), function (err, stdout, stderr) {
             if(err || stderr) {
                 res.error(err || stderr.toString('utf8'));
                 return;
