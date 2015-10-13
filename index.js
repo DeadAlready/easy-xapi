@@ -25,7 +25,7 @@ function create(config) {
     if (config.cluster) {
         config.cluster.port = config.cluster.port || config.port + 10000;
     }
-    if (!config.cluster || !cluster.isMaster) {
+    if (!config.cluster || !cluster.isMaster || config.forceRegister) {
         Common.register(app, config.root, config.cluster);
         app.use(compress());
         app.set('trust proxy', true);

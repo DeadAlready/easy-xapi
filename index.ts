@@ -29,6 +29,7 @@ interface Config {
     xHeaderDefaults: any;
     port: number;
     name: string;
+    forceRegister?: boolean;
     cluster?: {
         workers: string | Object;
         workerCount: number;
@@ -56,7 +57,7 @@ export function create(config: Config) {
         config.cluster.port = config.cluster.port || config.port + 10000;
     }
 
-    if(!config.cluster || !cluster.isMaster) {
+    if(!config.cluster || !cluster.isMaster || config.forceRegister) {
         Common.register(app, config.root, config.cluster);
 
         app.use(compress());
